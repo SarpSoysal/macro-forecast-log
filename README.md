@@ -4,14 +4,7 @@ Public, timestamped probability forecasts on UK and euro area rates and inflatio
 conditional cross-asset calls attached to each event. Every forecast is committed before
 the event resolves. Nothing is edited or deleted after the fact.
 
-Maintained by [NAME]. Started [DATE].
-
----
-
-## Why this exists
-
-[2-3 sentences in your own words. What you are trying to find out about your own
-judgment, not a pitch. Write this once and leave it.]
+Maintained by Sarp Soysal Aydin. Started 23/10/2026.
 
 ---
 
