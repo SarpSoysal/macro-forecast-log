@@ -1,6 +1,6 @@
 # Macro Forecast Log
 
-Public, timestamped probability forecasts on UK and euro area rates and inflation, plus
+Public, timestamped probability forecasts on UK, euro area and US rates and inflation, plus
 conditional cross-asset calls attached to each event. Every forecast is committed before
 the event resolves. Nothing is edited or deleted after the fact.
 
@@ -39,6 +39,8 @@ These were fixed on day one and are not changed retroactively.
 | ECB policy decision | 8 per year | ECB monetary policy statement |
 | Euro area flash HICP | Monthly | Eurostat flash estimate |
 | Spain flash CPI | Monthly | INE indicador adelantado |
+| FOMC rate decision | 8 per year | FOMC statement, federalreserve.gov press releases |
+| US CPI, headline and core | Monthly | BLS consumer price index news release |
 
 ### Tier 2: conditional transmission calls
 
@@ -59,6 +61,10 @@ Asset set, fixed at six:
 
 No free daily sterling investment grade spread series has been identified, so UK
 conditionals use the 2s10s gilt gap in place of a credit leg.
+
+US events use the 2y and 10y Treasury yield, EUR/USD and a US investment
+grade spread in place of the gilt and sterling legs. The FRED series ID for
+the spread is to be confirmed before first use.
 
 ### Tier 3: quarterly cross-asset note
 
@@ -127,6 +133,7 @@ uncertainty and should not be read as evidence of skill.
 
 | Date | Event | Tier 1 calls | Tier 2 calls | Status | File |
 |---|---|---|---|---|---|
+| 2026-10-28 | FOMC decision | | | Open | [link] |
 | 2026-10-29 | ECB decision | | | Open | [link] |
 | 2026-10-30 | EA flash HICP, Spain flash CPI | | | Open | [link] |
 | 2026-11-05 | BoE decision and vote split | | | Open | [link] |
