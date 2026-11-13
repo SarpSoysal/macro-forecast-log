@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Directional macro calls on rates, FX, commodities and equity indices, each logged with its reasoning, scored on the due date and checked against what moved the market.">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Macro View Journal</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Source+Code+Pro:wght@500&display=swap">
+<style>
+/* Layout: a research-desk track record. Summary first, then every call as an expandable row with its own price chart. */
+:root {
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --ink: #0f1a26;
+  --ink-2: #364352;
+  --muted: #687482;
+  --rule: #dce1e7;
+  --accent: #1c3d70;
+  --accent-soft: #e5ecf6;
+  --right: #11774b;
+  --right-soft: #dff0e7;
+  --partly: #5f9e7c;
+  --luck: #b07415;
+  --luck-soft: #f7ecd7;
+  --wrong: #b2352c;
+  --wrong-soft: #f8e2df;
+  --open: #8a96a3;
+  --window: rgba(28, 61, 112, .06);
+  --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-body: "Source Sans 3", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-code: "Source Code Pro", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c131b; --surface: #131c26; --ink: #e6ecf2; --ink-2: #c3ccd6; --muted: #8f9cab; --rule: #253240;
+    --accent: #8db0ea; --accent-soft: #1b2a3e; --right: #4fc28c; --right-soft: #12301f; --partly: #7fbf9b;
+    --luck: #e2a849; --luck-soft: #3a2b12; --wrong: #f07d72; --wrong-soft: #3a1d1b; --open: #6f7c8a;
+    --window: rgba(141, 176, 234, .08); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c131b; --surface: #131c26; --ink: #e6ecf2; --ink-2: #c3ccd6; --muted: #8f9cab; --rule: #253240;
+  --accent: #8db0ea; --accent-soft: #1b2a3e; --right: #4fc28c; --right-soft: #12301f; --partly: #7fbf9b;
+  --luck: #e2a849; --luck-soft: #3a2b12; --wrong: #f07d72; --wrong-soft: #3a1d1b; --open: #6f7c8a;
+  --window: rgba(141, 176, 234, .08); color-scheme: dark;
+}
+
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.5; font-variant-numeric: tabular-nums; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-block: 44px 72px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 48px; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+header { display: grid; gap: 10px; }
+.eyebrow { font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--font-display); font-weight: 600; font-size: clamp(34px, 5.4vw, 50px); line-height: 1.05; margin: 0; letter-spacing: -.012em; text-wrap: balance; }
+.lede { margin: 0; max-width: 64ch; color: var(--ink-2); font-size: 17px; }
+h2 { font-family: var(--font-display); font-weight: 600; font-size: 24px; margin: 0; text-wrap: balance; }
+.section-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; padding-bottom: 10px; border-bottom: 1px solid var(--ink); }
+.section-head .note { font-size: 14px; color: var(--muted); }
+section { display: grid; gap: 18px; min-width: 0; }
+
+/* Summary */
+.summary { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 2fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+@media (max-width: 760px) { .summary { grid-template-columns: 1fr; } }
+.headline { background: var(--surface); padding: 22px 24px; display: flex; gap: 20px; align-items: center; }
+.headline svg { flex: none; }
+.headline .big { font-family: var(--font-display); font-size: 54px; font-weight: 600; line-height: 1; }
+.headline .label { font-size: 13px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.headline .sub { font-size: 14px; color: var(--ink-2); margin-top: 4px; }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--rule); }
+@media (max-width: 520px) { .stats { grid-template-columns: 1fr; } }
+.stat { background: var(--surface); padding: 18px 20px; display: grid; gap: 2px; align-content: start; }
+.stat .label { font-size: 13px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.stat .value { font-family: var(--font-display); font-size: 34px; font-weight: 600; line-height: 1.15; }
+.stat .sub { font-size: 14px; color: var(--muted); }
+
+.strip { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.strip .label { font-size: 13px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); margin-right: 8px; }
+.chip { width: 30px; height: 30px; border: 0; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; display: grid; place-items: center; }
+.chip:hover { filter: brightness(.95); }
+
+/* Reasoning check */
+.check { display: grid; gap: 12px; }
+.check p { margin: 0; color: var(--ink-2); max-width: 70ch; }
+.stack { display: flex; height: 18px; border-radius: 3px; overflow: hidden; background: var(--rule); }
+.stack span { height: 100%; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 14.5px; }
+.legend span { display: inline-flex; align-items: center; gap: 8px; }
+.legend i { width: 12px; height: 12px; border-radius: 2px; display: inline-block; }
+.legend b { font-weight: 700; }
+
+/* Calls */
+.filters { display: inline-flex; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; background: var(--surface); }
+.filters button { border: 0; background: transparent; padding: 6px 14px; font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer; }
+.filters button[aria-pressed="true"] { background: var(--accent); color: var(--surface); }
+.calls { display: grid; border: 1px solid var(--rule); background: var(--surface); }
+.call + .call { border-top: 1px solid var(--rule); }
+.row { width: 100%; border: 0; background: transparent; cursor: pointer; text-align: left; padding: 14px 18px;
+  display: grid; grid-template-columns: 40px minmax(150px, 1.3fr) minmax(110px, .9fr) minmax(120px, 1fr) 130px 90px 170px 20px; gap: 14px; align-items: center; }
+.row:hover { background: var(--accent-soft); }
+.row .id { font-family: var(--font-code); font-size: 12.5px; color: var(--muted); }
+.row .mkt { font-weight: 700; display: grid; line-height: 1.25; }
+.row .mkt small, .row .when small { font-weight: 400; font-size: 13px; color: var(--muted); }
+.row .when { display: grid; line-height: 1.25; font-size: 14.5px; }
+.row .dir { font-weight: 600; font-size: 15px; }
+.row .dir small { display: block; font-weight: 400; font-size: 13px; color: var(--muted); }
+.row .move { text-align: right; font-weight: 600; }
+.row .chev { color: var(--muted); transition: transform .15s; }
+.row[aria-expanded="true"] .chev { transform: rotate(90deg); }
+.arrow { color: var(--accent); font-size: 11px; margin-right: 4px; }
+.pill { display: inline-block; font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+.pos { color: var(--right); } .neg { color: var(--wrong); }
+@media (max-width: 860px) {
+  .row { grid-template-columns: 34px minmax(0, 1fr) auto 18px; grid-template-areas: "id mkt pill chev" "id dir move chev" "id spark spark chev"; row-gap: 6px; }
+  .row .id { grid-area: id; align-self: start; } .row .mkt { grid-area: mkt; } .row .pillcell { grid-area: pill; justify-self: end; }
+  .row .chev { grid-area: chev; } .row .dir { grid-area: dir; } .row .move { grid-area: move; }
+  .row .spark { grid-area: spark; } .row .when { display: none; }
+  .row .spark svg { width: 100%; }
+}
+
+.detail { padding: 6px 18px 22px 72px; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 28px; }
+@media (max-width: 860px) { .detail { padding: 4px 16px 20px; grid-template-columns: 1fr; } }
+.chart { min-width: 0; }
+.chart svg { width: 100%; height: auto; display: block; }
+.chart .cap { font-size: 13px; color: var(--muted); margin-top: 6px; }
+.facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 18px; margin: 0; }
+.facts div { display: grid; gap: 0; }
+.facts dt { font-size: 12.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.facts dd { margin: 0; font-weight: 600; }
+.notes { display: grid; gap: 16px; align-content: start; min-width: 0; }
+.note { display: grid; gap: 6px; }
+.note h4 { margin: 0; font-size: 12.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.note p { margin: 0; color: var(--ink-2); max-width: 62ch; }
+.note.yours p { font-family: var(--font-display); font-size: 17px; color: var(--ink); border-left: 3px solid var(--accent); padding-left: 12px; }
+.note.review { background: var(--bg); border-radius: 6px; padding: 14px 16px; }
+
+/* Breakdown */
+.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: start; }
+@media (max-width: 760px) { .split { grid-template-columns: 1fr; } }
+.bars { display: grid; gap: 12px; }
+.bar { display: grid; grid-template-columns: 120px minmax(0, 1fr) 70px; gap: 12px; align-items: center; font-size: 15px; }
+.bar .track { height: 12px; background: var(--wrong-soft); border-radius: 2px; overflow: hidden; display: flex; }
+.bar .fill { background: var(--right); }
+.bar .score { text-align: right; color: var(--muted); font-size: 14px; }
+.brief { background: var(--surface); border: 1px solid var(--rule); padding: 20px 22px; display: grid; gap: 10px; font-size: 15px; }
+.brief h3 { font-family: var(--font-display); font-size: 18px; font-weight: 600; margin: 0; }
+.brief p { margin: 0; max-width: 75ch; color: var(--ink-2); }
+.brief strong { color: var(--ink); }
+.method summary { cursor: pointer; font-weight: 600; color: var(--ink-2); width: fit-content; }
+.method summary:hover { color: var(--accent); }
+.method-body { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px 28px; padding-top: 14px; }
+.method-body div { display: grid; gap: 2px; }
+.method-body strong { color: var(--ink); font-weight: 600; }
+.method-body p { margin: 0; }
+.trend-note { font-size: 14px; color: var(--muted); margin: 0; }
+.empty { padding: 20px; color: var(--muted); }
+footer { font-size: 14px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 14px; display: grid; gap: 12px; }
+footer p { margin: 0; }
+@media (prefers-reduced-motion: reduce) { .row .chev { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow" id="updated">Macro journal</div>
+    <h1>Macro View Journal</h1>
+    <p class="lede">Directional calls on rates, currencies, commodities and equity indices. Each call is logged with its reasoning before the outcome is known, scored on the due date's closing price, then checked against what actually moved the market.</p>
+  </header>
+
+  <section aria-labelledby="h-summary">
+    <div class="section-head"><h2 id="h-summary">Track record</h2><span class="note">Click any square to open that call</span></div>
+    <div class="summary">
+      <div class="headline" id="headline"></div>
+      <div class="stats" id="stats"></div>
+    </div>
+    <div class="strip" id="strip"></div>
+  </section>
+
+  <section aria-labelledby="h-check">
+    <div class="section-head"><h2 id="h-check">Reasoning check</h2><span class="note">Scored calls only</span></div>
+    <div class="check">
+      <p>Getting the direction right can be luck. After scoring, each call is checked against what actually drove the market, to see whether the stated reason held up.</p>
+      <div class="stack" id="stack" role="img"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-calls">
+    <div class="section-head"><h2 id="h-calls">All calls <span class="note" style="font-family:var(--font-body);font-size:14px;font-weight:400;color:var(--muted)">numbered in the order logged, newest first</span></h2>
+      <div class="filters" role="group" aria-label="Show calls">
+        <button type="button" id="f-all" data-f="all" aria-pressed="true">All</button>
+        <button type="button" id="f-open" data-f="open" aria-pressed="false">Open</button>
+        <button type="button" id="f-scored" data-f="scored" aria-pressed="false">Scored</button>
+      </div>
+    </div>
+    <div class="calls" id="calls"></div>
+  </section>
+
+  <div class="split">
+    <section aria-labelledby="h-mkt">
+      <div class="section-head"><h2 id="h-mkt">Accuracy by market</h2></div>
+      <div class="bars" id="by-market"></div>
+    </section>
+    <section aria-labelledby="h-hor">
+      <div class="section-head"><h2 id="h-hor">Accuracy by horizon</h2></div>
+      <div class="bars" id="by-horizon"></div>
+    </section>
+  </div>
+
+  <section aria-labelledby="h-brief">
+    <div class="section-head"><h2 id="h-brief">Latest morning brief</h2><span class="note" id="brief-date"></span></div>
+    <div class="brief" id="brief"></div>
+  </section>
+
+  <footer>
+    <details class="method">
+      <summary>How calls are scored</summary>
+      <div class="method-body">
+        <div><strong>Direction only</strong><p>A call is right if the market closes on its due date on the predicted side of the entry level, by any amount. For yields, "up" means the yield rises.</p></div>
+        <div><strong>Entry and exit</strong><p>Entry is the latest price when the call is logged, before the outcome is known. Exit is the due date's final close; a weekend due date uses the Friday close.</p></div>
+        <div><strong>Reasoning check</strong><p>After scoring, the stated reason is compared with the news and data that moved the market over the call's window.</p></div>
+      </div>
+    </details>
+    <p id="footer"></p>
+  </footer>
+</div>
+
+<script type="application/json" id="data">{"built": "2026-11-13 22:45", "views": [{"id": 1, "key": "SPX", "name": "S&P 500", "kind": "price", "unit": "%", "direction": "down", "horizon": 4, "date": "2026-10-31", "due": "2026-11-04", "entry": 7580.0698, "benchmark": 0.0, "trend": false, "reason": "Uncertainty ahead of Tuesday's US midterm elections keeps pressure on stocks until results are known", "status": "scored", "exit": 7688.6201, "move": 1.43, "excess": 1.43, "result": "wrong", "review": {"reasoning": "didnt", "explanation": "The S&P did dip on Monday 2 Nov (7,541), so the call was working before the vote. But the horizon ended at Wednesday's close, the day after the results, so the result decided it, not the uncertainty. Democrats swept Congress and the S&P rose 1.6% that day to 7,689 as the uncertainty cleared. The index then fell 4.4% on Thursday, so a 5 day horizon would have scored right, but for a different reason: fears that a Democratic Congress would regulate AI."}}, {"id": 2, "key": "GOLD", "name": "Gold", "kind": "price", "unit": "%", "direction": "down", "horizon": 4, "date": "2026-10-31", "due": "2026-11-04", "entry": 3898.8999, "benchmark": 0.0, "trend": false, "reason": "Gold stays flat or keeps falling until the midterm results, then turns bullish afterwards", "status": "scored", "exit": 4073.0, "move": 4.47, "excess": 4.47, "result": "wrong", "review": {"reasoning": "didnt", "explanation": "Gold had already started bouncing from its one year low before the vote (+1.8% on Monday 2 Nov). After the Democratic sweep the dollar fell and gold jumped 3.4% on Wednesday to $4,073. The reason also pointed both ways (flat or down, then bullish), which makes a call hard to test cleanly."}}, {"id": 3, "key": "BRENT", "name": "Brent crude", "kind": "price", "unit": "%", "direction": "down", "horizon": 3, "date": "2026-11-02", "due": "2026-11-05", "entry": 108.79, "benchmark": 0.0, "trend": false, "reason": "Iran and Qatar talks reach a deal to end the war by Thursday, reopening Hormuz and easing supply fears", "status": "scored", "exit": 98.29, "move": -9.65, "excess": -9.65, "result": "right", "review": {"reasoning": "partly", "explanation": "Direction right and the mechanism right: Iran talks raised the odds of Hormuz reopening and Brent fell about 9% on Wednesday 4 Nov alone. But no deal was signed by Thursday. Oil fell on the rising chance of a deal, not on the deal itself. Markets move on changing odds before events happen."}}, {"id": 4, "key": "DXY", "name": "Dollar index", "kind": "price", "unit": "%", "direction": "up", "horizon": 2, "date": "2026-11-02", "due": "2026-11-04", "entry": 101.568, "benchmark": 0.0, "trend": false, "reason": "Dollar firms slightly into the midterms as uncertainty supports it until results are known", "status": "scored", "exit": 101.51, "move": -0.06, "excess": -0.06, "result": "wrong", "review": {"reasoning": "didnt", "explanation": "The dollar did firm into the vote (101.87 on election day), so the call was ahead. It then gave it all back after the Democratic sweep and closed at 101.51, just 0.06% below entry. A move this small over two days is mostly noise, so this was close to a coin toss."}}, {"id": 5, "key": "GOLD", "name": "Gold", "kind": "price", "unit": "%", "direction": "up", "horizon": 3, "date": "2026-11-04", "due": "2026-11-07", "entry": 4054.5, "benchmark": 0.0, "trend": false, "reason": "Democrats winning the Senate gives people more confidence in markets, and a weaker dollar lifts gold", "status": "scored", "exit": 4074.8999, "move": 0.5, "excess": 0.5, "result": "right", "review": {"reasoning": "didnt", "explanation": "Right for the wrong reason. The reason relied on a weaker dollar and more market confidence, but over these days the dollar rose 0.9% and stocks crashed. Gold rose because it worked as a safe haven during Thursday's 4.4% stock sell-off (it hit $4,114), then gave some back on Friday."}}, {"id": 6, "key": "DXY", "name": "Dollar index", "kind": "price", "unit": "%", "direction": "down", "horizon": 2, "date": "2026-11-04", "due": "2026-11-06", "entry": 101.396, "benchmark": 0.0, "trend": false, "reason": "Democratic sweep weakens the dollar as consumers spend more; I had wrongly expected a Republican win to be the dollar-positive outcome", "status": "scored", "exit": 102.3, "move": 0.89, "excess": 0.89, "result": "wrong", "review": {"reasoning": "didnt", "explanation": "The dollar rose 0.9%. First it was bought as a safe haven during Thursday's stock crash, then Friday's jobs report (+165,000 vs about 60,000 expected) revived Fed hike bets. The logic also runs backwards: more consumer spending usually means higher interest rates, which tends to strengthen a currency, not weaken it."}}, {"id": 7, "key": "SPX", "name": "S&P 500", "kind": "price", "unit": "%", "direction": "up", "horizon": 1, "date": "2026-11-04", "due": "2026-11-05", "entry": 7691.8101, "benchmark": 0.0, "trend": false, "reason": "Investors buy large US stocks on confidence that the new Democratic Congress will improve the economy and living standards", "status": "scored", "exit": 7353.73, "move": -4.4, "excess": -4.4, "result": "wrong", "review": {"reasoning": "didnt", "explanation": "The S&P fell 4.4% on Thursday 5 Nov, its worst day since April 2025, with the Nasdaq down 5.5%. Investors feared a Democratic Congress would regulate AI and slow data centre spending. The election result was bad news for the AI stocks that dominate the index, and the call bought straight after a 1.6% jump."}}, {"id": 8, "key": "SPX", "name": "S&P 500", "kind": "price", "unit": "%", "direction": "down", "horizon": 3, "date": "2026-11-06", "due": "2026-11-09", "entry": 7353.73, "benchmark": 0.0, "trend": false, "reason": "Markets settle after the AI-led sell-off, so the S&P drifts a little lower by Monday but the pace of falls slows", "status": "scored", "exit": 7549.9399, "move": 2.67, "excess": 2.67, "result": "wrong", "review": {"reasoning": "didnt", "explanation": "Instead of drifting lower, stocks bounced: AI shares rebounded on Friday and Asian markets rallied on Monday, taking the S&P to 7,550. Sharp sell-offs are often followed by sharp relief rallies. Friday's strong jobs report also landed inside the window without being part of the reasoning."}}, {"id": 9, "key": "FTSE", "name": "FTSE 100", "kind": "price", "unit": "%", "direction": "down", "horizon": 3, "date": "2026-11-06", "due": "2026-11-09", "entry": 10540.4404, "benchmark": 0.0, "trend": false, "reason": "Markets stabilise after the sell-off, leaving the FTSE just slightly lower by Monday", "status": "scored", "exit": 10782.9004, "move": 2.3, "excess": 2.3, "result": "wrong", "review": {"reasoning": "didnt", "explanation": "The entry was taken mid-morning on Friday near the day's low (10,540). The FTSE recovered to close Friday at 10,674 and joined the global rebound on Monday (10,783). With little AI exposure, the FTSE had less reason than the S&P to keep falling once the panic eased."}}, {"id": 10, "key": "GOLD", "name": "Gold", "kind": "price", "unit": "%", "direction": "down", "horizon": 7, "date": "2026-11-11", "due": "2026-11-18", "entry": 4038.0, "benchmark": 0.0, "trend": false, "reason": "Gold keeps falling as hot CPI makes a December Fed rate hike likely, and gold pays no interest", "status": "open", "last": 3887.60009765625, "last_date": "2026-11-13", "move": -3.72, "excess": -3.72, "winning": true}, {"id": 11, "key": "BRENT", "name": "Brent crude", "kind": "price", "unit": "%", "direction": "up", "horizon": 7, "date": "2026-11-11", "due": "2026-11-18", "entry": 92.89, "benchmark": 0.0, "trend": false, "reason": "With no new US strikes expected, Brent has fallen too far on deal hopes (about 20% off its high) and is due a bounce", "status": "open", "last": 96.08000183105469, "last_date": "2026-11-13", "move": 3.43, "excess": 3.43, "winning": true}, {"id": 12, "key": "GBPUSD", "name": "GBP/USD", "kind": "price", "unit": "%", "direction": "down", "horizon": 7, "date": "2026-11-11", "due": "2026-11-18", "entry": 1.3271, "benchmark": 0.0, "trend": false, "reason": "UK third quarter GDP comes in below expectations, cutting the odds of more Bank of England hikes and weighing on the pound", "status": "open", "last": 1.320899248123169, "last_date": "2026-11-13", "move": -0.47, "excess": -0.47, "winning": true}, {"id": 13, "key": "US2Y", "name": "US 2y yield", "kind": "yield", "unit": "bps", "direction": "up", "horizon": 7, "date": "2026-11-11", "due": "2026-11-18", "entry": 4.73, "benchmark": 0.0, "trend": false, "reason": "Yields rise further as hot October CPI makes a December Fed hike likely", "status": "open", "last": 4.86, "last_date": "2026-11-12", "move": 13.0, "excess": 13.0, "winning": true}], "series": {"US2Y": [["2026-11-05", 4.46], ["2026-11-06", 4.51], ["2026-11-09", 4.56], ["2026-11-10", 4.73], ["2026-11-12", 4.86]], "SPX": [["2026-10-26", 7676.77], ["2026-10-27", 7722.6001], ["2026-10-28", 7743.98], ["2026-10-29", 7720.3901], ["2026-10-30", 7580.0698], ["2026-11-02", 7541.3999], ["2026-11-03", 7568.9199], ["2026-11-04", 7688.6201], ["2026-11-05", 7353.73], ["2026-11-06", 7376.8599], ["2026-11-09", 7549.9399], ["2026-11-10", 7520.9302], ["2026-11-11", 7619.3799], ["2026-11-12", 7592.3999], ["2026-11-13", 7561.6699]], "GOLD": [["2026-10-26", 4038.3999], ["2026-10-27", 4074.6001], ["2026-10-28", 4051.6001], ["2026-10-29", 4031.3999], ["2026-10-30", 3898.8999], ["2026-11-02", 3969.6001], ["2026-11-03", 3940.3999], ["2026-11-04", 4073.0], ["2026-11-05", 4113.5], ["2026-11-06", 4074.8999], ["2026-11-09", 4114.5], ["2026-11-10", 4030.2], ["2026-11-11", 4000.5], ["2026-11-12", 3885.3], ["2026-11-13", 3887.6001]], "DXY": [["2026-10-27", 102.32], ["2026-10-28", 102.19], ["2026-10-29", 102.04], ["2026-10-30", 101.88], ["2026-11-02", 101.75], ["2026-11-03", 101.87], ["2026-11-04", 101.51], ["2026-11-05", 101.55], ["2026-11-06", 102.3], ["2026-11-09", 101.65], ["2026-11-10", 102.23], ["2026-11-11", 102.91], ["2026-11-12", 103.17], ["2026-11-13", 103.411]], "FTSE": [["2026-11-02", 10761.2998], ["2026-11-03", 10638.4004], ["2026-11-04", 10829.2002], ["2026-11-05", 10782.7002], ["2026-11-06", 10673.9004], ["2026-11-09", 10782.9004], ["2026-11-10", 10751.5996], ["2026-11-11", 10835.5], ["2026-11-12", 10863.0996], ["2026-11-13", 10902.5596]], "BRENT": [["2026-10-27", 113.88], ["2026-10-28", 115.32], ["2026-10-29", 114.88], ["2026-10-30", 117.64], ["2026-11-02", 104.77], ["2026-11-03", 103.6], ["2026-11-04", 94.62], ["2026-11-05", 98.29], ["2026-11-06", 98.32], ["2026-11-09", 92.57], ["2026-11-10", 91.49], ["2026-11-11", 92.76], ["2026-11-12", 95.82], ["2026-11-13", 96.08]], "GBPUSD": [["2026-11-05", 1.3477], ["2026-11-06", 1.3456], ["2026-11-09", 1.336], ["2026-11-10", 1.3442], ["2026-11-11", 1.3349], ["2026-11-12", 1.3277], ["2026-11-13", 1.3209]]}, "brief": {"date": "2026-11-11", "html": "<h3>Macro brief, Wednesday 11 November 2026 (14:25 London)<\/h3>\n<p class='brief-item'>1. <strong>Hot US inflation on Tuesday:<\/strong> October CPI rose 0.4% in the month against 0.3% expected, and core CPI (without food and energy) rose 0.3% against 0.2%. Commentators blame the oil price shock spreading into other prices. Markets now see about an 80% chance of a Fed rate hike in December. The 2y yield jumped about 15 bps to 4.69% and the 10y is near 5.0%. US bond markets are shut today for Veterans Day.<\/p>\n<p class='brief-item'>2. <strong>Dollar up about 1.3% this week (unusual):<\/strong> DXY is at 102.8, EUR/USD at 1.109 and GBP/USD at 1.327, as higher expected US rates pull money into dollars. Our one-day figures for the euro and pound (about -1.2%) look exaggerated by patchy daily FX data, so the weekly move is the more reliable read.<\/p>\n<p class='brief-item'>3. <strong>Stocks shrug it off:<\/strong> the S&amp;P fell 0.4% to 7,521 on Tuesday (Nasdaq -0.7%) but US futures are up about 0.9% today. Taiwan&#x27;s market jumped about 6% and Germany&#x27;s DAX is near a record. The FTSE is up 0.6%.<\/p>\n<p class='brief-item'>4. <strong>Gold and oil:<\/strong> gold fell about 2% on Tuesday to around $4,030 as rate-hike bets rose, since gold pays no interest and looks less attractive when rates climb. Brent closed Tuesday at $91.5, its lowest since late August, after US officials signalled no need for further strikes on Iran, and has bounced 1.3% to $92.7 today. USD/TRY is rising more slowly than its usual trend today (-0.21 points vs trend, unusual), with no clear news behind it.<\/p>\n<p class='brief-item'>5. <strong>Coming up:<\/strong> UK third quarter GDP tomorrow (Thu 12 Nov), the first big UK data since the Bank of England&#x27;s hike, then US producer prices (PPI) on Friday.<\/p>\n<p><strong>What&#x27;s your view?<\/strong><\/p>\n<p><em>Note: our US 2y and 2s10s are from Monday (FRED lag); the 2s10s flattened 4.5 bps that day. The 10y reading may be stale today with US bond markets closed.<\/em><\/p>"}}</script>
+<script>
+(function () {
+  const data = JSON.parse(document.getElementById("data").textContent);
+  const views = data.views, series = data.series || {};
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const d8 = (iso) => { const [y, m, d] = iso.split("-").map(Number); return new Date(Date.UTC(y, m - 1, d)); };
+  const fd = (iso) => { const t = d8(iso); return t.getUTCDate() + " " + MON[t.getUTCMonth()]; };
+  const fdw = (iso) => { const t = d8(iso); return DOW[t.getUTCDay()] + " " + fd(iso); };
+  const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+  const fmtLevel = (v, kind) => {
+    if (kind === "yield") return v.toFixed(2) + "%";
+    const dp = v >= 1000 ? 0 : v >= 20 ? 2 : 4;
+    return v.toLocaleString("en-GB", { minimumFractionDigits: dp, maximumFractionDigits: dp });
+  };
+  const fmtMove = (m, unit) => {
+    const sign = m > 0 ? "+" : m < 0 ? "−" : "";
+    return sign + (unit === "bps" ? Math.abs(m).toFixed(1) + " bp" : Math.abs(m).toFixed(2) + "%");
+  };
+  const horizon = (n) => n === 1 ? "1 day" : n + " days";
+  const qual = (v) => v.trend ? (v.direction === "up" ? "faster than trend" : "slower than trend")
+    : v.key === "2S10S" ? (v.direction === "up" ? "steeper" : "flatter") : "";
+
+  const VERDICTS = {
+    right:   { label: "Right, reasoning held", short: "Right", color: "--right", soft: "--right-soft", text: "--right" },
+    partly:  { label: "Right, reasoning partly held", short: "Right, partly", color: "--partly", soft: "--right-soft", text: "--right" },
+    luck:    { label: "Right for the wrong reason", short: "Right, wrong reason", color: "--luck", soft: "--luck-soft", text: "--luck" },
+    wrong:   { label: "Wrong", short: "Wrong", color: "--wrong", soft: "--wrong-soft", text: "--wrong" },
+    unlucky: { label: "Wrong, reasoning held", short: "Wrong, sound reason", color: "--wrong", soft: "--wrong-soft", text: "--wrong" },
+    pending: { label: "Right, check pending", short: "Right", color: "--right", soft: "--right-soft", text: "--right" },
+    open:    { label: "Open", short: "Open", color: "--open", soft: "--accent-soft", text: "--accent" },
+  };
+  const verdictOf = (v) => {
+    if (v.status !== "scored") return "open";
+    const r = v.review && v.review.reasoning;
+    if (v.result === "wrong") return r === "held" ? "unlucky" : "wrong";
+    if (!r) return "pending";
+    return r === "held" ? "right" : r === "partly" ? "partly" : "luck";
+  };
+  views.forEach((v) => { v.verdict = verdictOf(v); });
+  const pill = (v) => {
+    const s = VERDICTS[v.verdict];
+    if (v.verdict === "open") {
+      if (v.winning === undefined) return `<span class="pill" style="background:var(--accent-soft);color:var(--accent)">Open</span>`;
+      return `<span class="pill" style="background:var(--accent-soft);color:var(--accent)">Open · ${v.winning ? "on track" : "behind"}</span>`;
+    }
+    return `<span class="pill" style="background:var(${s.soft});color:var(${s.text})">${s.short}</span>`;
+  };
+
+  const scored = views.filter((v) => v.status === "scored");
+  const open = views.filter((v) => v.status !== "scored");
+  const hits = scored.filter((v) => v.result === "right").length;
+  const acc = scored.length ? hits / scored.length : 0;
+
+  // Header and summary
+  const b = data.built;
+  $("updated").textContent = "Macro journal · Updated " + fd(b.slice(0, 10)) + " " + b.slice(0, 4);
+  const R = 34, C = 2 * Math.PI * R;
+  $("headline").innerHTML = `
+    <svg width="84" height="84" viewBox="0 0 84 84" aria-hidden="true">
+      <circle cx="42" cy="42" r="${R}" fill="none" stroke="var(--wrong-soft)" stroke-width="10"/>
+      <circle cx="42" cy="42" r="${R}" fill="none" stroke="var(--right)" stroke-width="10"
+        stroke-dasharray="${(acc * C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 42 42)"/>
+    </svg>
+    <div><div class="label">Accuracy rate</div><div class="big">${scored.length ? Math.round(acc * 100) + "%" : "n/a"}</div>
+    <div class="sub">${hits} right of ${scored.length} scored calls</div></div>`;
+  const avgH = scored.length ? (scored.reduce((a, v) => a + v.horizon, 0) / scored.length).toFixed(1) : "0";
+  const nextDue = open.map((v) => v.due).sort()[0];
+  $("stats").innerHTML = [
+    ["Open calls", open.length, nextDue ? "next due " + fdw(nextDue) : "none pending"],
+    ["Calls logged", views.length, new Set(views.map((v) => v.key)).size + " markets"],
+    ["Avg horizon", avgH + " days", "on scored calls"],
+  ].map(([l, v, s]) => `<div class="stat"><span class="label">${l}</span><span class="value">${v}</span><span class="sub">${s}</span></div>`).join("");
+
+  const byId = [...views].sort((a, b) => a.id - b.id);
+  $("strip").innerHTML = `<span class="label">Each call</span>` + byId.map((v) => {
+    const s = VERDICTS[v.verdict];
+    const style = v.verdict === "open" ? "background:transparent;color:var(--muted);box-shadow:inset 0 0 0 1.5px var(--open)"
+      : `background:var(${s.color});color:var(--surface)`;
+    const t = `Call ${v.id}: ${v.name} ${v.direction}, ${s.label.toLowerCase()}`;
+    return `<button type="button" class="chip" style="${style}" data-open="${v.id}" title="${esc(t)}" aria-label="${esc(t)}">${v.id}</button>`;
+  }).join("");
+
+  // Reasoning check
+  const order = ["right", "partly", "luck", "pending", "unlucky", "wrong"];
+  const counts = {}; scored.forEach((v) => { counts[v.verdict] = (counts[v.verdict] || 0) + 1; });
+  const present = order.filter((k) => counts[k]);
+  $("stack").setAttribute("aria-label", present.map((k) => counts[k] + " " + VERDICTS[k].label).join(", "));
+  $("stack").innerHTML = present.map((k) => `<span style="width:${(counts[k] / scored.length) * 100}%;background:var(${VERDICTS[k].color})"></span>`).join("");
+  const legendKeys = ["right", "partly", "luck", "wrong"].concat(counts.pending ? ["pending"] : []).concat(counts.unlucky ? ["unlucky"] : []);
+  $("legend").innerHTML = legendKeys.map((k) => `<span><i style="background:var(${VERDICTS[k].color})"></i><b>${counts[k] || 0}</b> ${VERDICTS[k].label}</span>`).join("");
+
+  // Charts
+  function windowFor(v) {
+    const s = series[v.key] || [];
+    const start = new Date(d8(v.date).getTime() - 6 * 864e5).toISOString().slice(0, 10);
+    const endIso = new Date(d8(v.due).getTime() + 3 * 864e5).toISOString().slice(0, 10);
+    let pts = s.filter(([d]) => d >= start && d <= endIso);
+    // Put the entry on the line itself. If the entry equals one of the last two closes on or before
+    // the log date (logged before the open or at a weekend), anchor it there; otherwise it was taken
+    // during the day, so insert it between the previous close and that day's close.
+    let logIdx = -1, dueIdx = -1;
+    const onOrBefore = [];
+    pts.forEach(([d], i) => { if (d <= v.date) onOrBefore.push(i); });
+    for (const i of onOrBefore.slice(-2).reverse()) {
+      if (Math.abs(pts[i][1] - v.entry) < 1e-3) { logIdx = i; break; }
+    }
+    if (logIdx < 0) {
+      let ins = pts.findIndex(([d]) => d >= v.date);
+      if (ins < 0) ins = pts.length;
+      pts = pts.slice(0, ins).concat([[v.date, v.entry]], pts.slice(ins));
+      logIdx = ins;
+    }
+    pts.forEach(([d], i) => { if (d <= v.due) dueIdx = i; });
+    const dueReached = pts.length && pts[pts.length - 1][0] >= v.due;
+    return { pts, logIdx, dueIdx, dueReached };
+  }
+  function chart(v, w, h, big) {
+    const { pts, logIdx, dueIdx, dueReached } = windowFor(v);
+    if (pts.length < 2) return `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}"></svg>`;
+    const padL = big ? 58 : 2, padR = big ? 12 : 2, padT = big ? 14 : 3, padB = big ? 30 : 3;
+    const vals = pts.map((p) => p[1]).concat([v.entry]);
+    let lo = Math.min(...vals), hi = Math.max(...vals);
+    const pad = (hi - lo) * 0.12 || Math.abs(hi) * 0.01 || 1; lo -= pad; hi += pad;
+    const x = (i) => padL + (i / (pts.length - 1)) * (w - padL - padR);
+    const y = (val) => padT + (1 - (val - lo) / (hi - lo)) * (h - padT - padB);
+    const endIdx = v.status === "scored" ? Math.max(dueIdx, logIdx) : pts.length - 1;
+    const good = v.status === "scored" ? v.result === "right" : v.winning;
+    const hot = good === undefined ? "var(--accent)" : good ? "var(--right)" : "var(--wrong)";
+    const line = (a, b2) => pts.slice(a, b2 + 1).map((p, k) => (k ? "L" : "M") + x(a + k).toFixed(1) + " " + y(p[1]).toFixed(1)).join(" ");
+    let svg = `<svg viewBox="0 0 ${w} ${h}" ${big ? "" : `width="${w}" height="${h}"`} role="img" aria-label="${esc(v.name)} price path around call ${v.id}">`;
+    svg += `<rect x="${x(logIdx).toFixed(1)}" y="${padT}" width="${Math.max(x(endIdx) - x(logIdx), 2).toFixed(1)}" height="${h - padT - padB}" fill="var(--window)"/>`;
+    if (big) {
+      [lo + pad, hi - pad].forEach((val) => {
+        svg += `<line x1="${padL}" x2="${w - padR}" y1="${y(val).toFixed(1)}" y2="${y(val).toFixed(1)}" stroke="var(--rule)" stroke-width="1"/>`;
+        svg += `<text x="${padL - 8}" y="${(y(val) + 4).toFixed(1)}" text-anchor="end" font-size="11.5" fill="var(--muted)">${fmtLevel(val, v.kind)}</text>`;
+      });
+    }
+    svg += `<line x1="${padL}" x2="${w - padR}" y1="${y(v.entry).toFixed(1)}" y2="${y(v.entry).toFixed(1)}" stroke="var(--muted)" stroke-width="1" stroke-dasharray="4 3"/>`;
+    svg += `<path d="${line(0, pts.length - 1)}" fill="none" stroke="var(--open)" stroke-width="${big ? 1.6 : 1.2}"/>`;
+    svg += `<path d="${line(logIdx, endIdx)}" fill="none" stroke="${hot}" stroke-width="${big ? 2.6 : 2}" stroke-linejoin="round"/>`;
+    svg += `<circle cx="${x(logIdx).toFixed(1)}" cy="${y(pts[logIdx][1]).toFixed(1)}" r="${big ? 4 : 2.5}" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.5"/>`;
+    svg += `<circle cx="${x(endIdx).toFixed(1)}" cy="${y(pts[endIdx][1]).toFixed(1)}" r="${big ? 4.5 : 2.8}" fill="${hot}"/>`;
+    if (big) {
+      const lab = (i, t, anchor) => `<text x="${x(i).toFixed(1)}" y="${h - 9}" text-anchor="${anchor}" font-size="11.5" fill="var(--muted)">${t}</text>`;
+      svg += lab(logIdx, "Logged " + fd(v.date), logIdx < pts.length * 0.25 ? "start" : "middle");
+      const endLabel = v.status === "scored" ? "Due " + fd(v.due) : dueReached ? "Due " + fd(v.due) : "Latest " + fd(pts[endIdx][0]);
+      if (endIdx !== logIdx) svg += lab(endIdx, endLabel, endIdx > pts.length * 0.75 ? "end" : "middle");
+      svg += `<text x="${w - padR}" y="${(y(v.entry) - 6).toFixed(1)}" text-anchor="end" font-size="11.5" fill="var(--muted)">Entry ${fmtLevel(v.entry, v.kind)}</text>`;
+    }
+    return svg + "</svg>";
+  }
+
+  // Call rows
+  function moveCell(v) {
+    if (v.move === undefined) return "";
+    const m = v.trend ? v.excess : v.move;
+    const good = v.status === "scored" ? v.result === "right" : v.winning;
+    return `<span class="${good ? "pos" : "neg"}">${fmtMove(m, v.unit)}</span>`;
+  }
+  function detail(v) {
+    const r = v.review || {};
+    const closeLabel = v.status === "scored" ? "Close on due date" : "Latest";
+    const closeVal = v.status === "scored" ? v.exit : v.last;
+    let review;
+    if (v.status !== "scored") {
+      review = `<div class="note review"><h4>Review</h4><p>Not scored yet. This call closes on ${fdw(v.due)} and is checked the day after.</p></div>`;
+    } else if (r.explanation) {
+      review = `<div class="note review"><h4>What actually happened ${pill(v)}</h4><p>${esc(r.explanation)}</p></div>`;
+    } else if (v.verdict === "right") {
+      review = `<div class="note review"><h4>Review ${pill(v)}</h4><p>The reasoning held up. Nothing to add.</p></div>`;
+    } else {
+      review = `<div class="note review"><h4>Review ${pill(v)}</h4><p>Reasoning check to follow.</p></div>`;
+    }
+    return `<div class="detail" id="d-${v.id}" hidden>
+      <div class="chart">${chart(v, 520, 210, true)}
+        <div class="cap">Daily closes. The shaded band is the call's window, the dashed line the entry level.</div></div>
+      <div class="notes">
+        <dl class="facts">
+          <div><dt>Call</dt><dd>${v.direction === "up" ? "Up" : "Down"}${qual(v) ? ", " + qual(v) : ""}, ${horizon(v.horizon)}</dd></div>
+          <div><dt>Window</dt><dd>${fd(v.date)} to ${fd(v.due)}</dd></div>
+          <div><dt>Entry</dt><dd>${fmtLevel(v.entry, v.kind)}</dd></div>
+          <div><dt>${closeLabel}</dt><dd>${closeVal === undefined ? "n/a" : fmtLevel(closeVal, v.kind)} ${v.move === undefined ? "" : "(" + moveCell(v) + ")"}</dd></div>
+        </dl>
+        ${v.trend ? `<p class="trend-note">The lira weakens against the dollar almost every day, so this call is scored against its 3 month trend: the trend alone implied ${fmtMove(v.benchmark, v.unit)} over the window. "Up" wins if USD/TRY beats that, "down" if it falls short.</p>` : ""}
+        <div class="note yours"><h4>The reason given</h4><p>${esc(v.reason)}</p></div>
+        ${review}
+      </div></div>`;
+  }
+  function row(v) {
+    const sub = qual(v) ? `<small>${qual(v)}</small>` : `<small>${horizon(v.horizon)}</small>`;
+    return `<div class="call" data-status="${v.status === "scored" ? "scored" : "open"}" id="call-${v.id}">
+      <button type="button" class="row" aria-expanded="false" aria-controls="d-${v.id}" data-id="${v.id}">
+        <span class="id">#${v.id}</span>
+        <span class="mkt">${esc(v.name)}<small>${esc(v.key)}</small></span>
+        <span class="dir"><span class="arrow" aria-hidden="true">${v.direction === "up" ? "▲" : "▼"}</span>${v.direction === "up" ? "Up" : "Down"}${sub}</span>
+        <span class="when">${fd(v.date)} → ${fd(v.due)}<small>${horizon(v.horizon)}</small></span>
+        <span class="spark">${chart(v, 130, 34, false)}</span>
+        <span class="move">${moveCell(v)}</span>
+        <span class="pillcell">${pill(v)}</span>
+        <span class="chev" aria-hidden="true">›</span>
+      </button>${detail(v)}</div>`;
+  }
+  const sorted = [...views].sort((a, b) => b.id - a.id);  // call numbers follow logging order; newest first
+  $("calls").innerHTML = sorted.length ? sorted.map(row).join("") : `<div class="empty">No calls logged yet.</div>`;
+
+  function toggle(id, force) {
+    const btn = document.querySelector(`.row[data-id="${id}"]`);
+    if (!btn) return;
+    const openNow = force !== undefined ? force : btn.getAttribute("aria-expanded") !== "true";
+    btn.setAttribute("aria-expanded", String(openNow));
+    $("d-" + id).hidden = !openNow;
+  }
+  $("calls").addEventListener("click", (e) => {
+    const btn = e.target.closest(".row"); if (!btn) return;
+    toggle(btn.dataset.id);
+    if (btn.getAttribute("aria-expanded") === "true") history.replaceState(null, "", "#call-" + btn.dataset.id);
+  });
+  function openFromHash() {
+    const m = /^#call-(\d+)$/.exec(location.hash); if (!m) return;
+    setFilter("all"); toggle(m[1], true);
+    const el = $("call-" + m[1]); if (el) el.scrollIntoView({ block: "start" });
+  }
+  $("strip").addEventListener("click", (e) => {
+    const c = e.target.closest("[data-open]"); if (!c) return;
+    location.hash = "call-" + c.dataset.open;
+  });
+  window.addEventListener("hashchange", openFromHash);
+
+  function setFilter(f) {
+    document.querySelectorAll(".filters button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.f === f)));
+    document.querySelectorAll(".call").forEach((c) => { c.hidden = f !== "all" && c.dataset.status !== f; });
+  }
+  document.querySelector(".filters").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) setFilter(b.dataset.f); });
+
+  // Breakdowns
+  function bars(groups) {
+    const keys = Object.keys(groups);
+    if (!keys.length) return `<div class="empty">Appears once calls are scored.</div>`;
+    return keys.map((k) => {
+      const r = groups[k], h = r.filter(Boolean).length;
+      return `<div class="bar"><span>${esc(k)}</span><span class="track" role="img" aria-label="${h} of ${r.length} right"><span class="fill" style="width:${(h / r.length) * 100}%"></span></span><span class="score">${h} of ${r.length}</span></div>`;
+    }).join("");
+  }
+  const byMkt = {};
+  [...scored].sort((a, b) => a.name.localeCompare(b.name)).forEach((v) => { (byMkt[v.name] ||= []).push(v.result === "right"); });
+  $("by-market").innerHTML = bars(byMkt);
+  const bucket = (n) => n <= 2 ? "1 to 2 days" : n <= 4 ? "3 to 4 days" : n <= 10 ? "5 to 10 days" : "Over 10 days";
+  const byH = {};
+  ["1 to 2 days", "3 to 4 days", "5 to 10 days", "Over 10 days"].forEach((k) => {
+    const r = scored.filter((v) => bucket(v.horizon) === k).map((v) => v.result === "right");
+    if (r.length) byH[k] = r;
+  });
+  $("by-horizon").innerHTML = bars(byH);
+
+  if (data.brief) { $("brief-date").textContent = fdw(data.brief.date); $("brief").innerHTML = data.brief.html; }
+  else $("brief").innerHTML = `<p>No brief yet.</p>`;
+  $("footer").textContent = views.length + " calls logged since " + (views.length ? fd(byId[0].date) + " " + byId[0].date.slice(0, 4) : "the start") + ". Prices from Yahoo Finance and FRED. Explanations are written after scoring and checked against market data and news coverage.";
+
+  openFromHash();
+})();
+</script>
+</body>
+</html>
