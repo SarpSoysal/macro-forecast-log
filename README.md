@@ -6,6 +6,10 @@ the event resolves. Nothing is edited or deleted after the fact.
 
 Maintained by Sarp Soysal Aydin. Started 23/10/2026.
 
+**Companion site:** the [Macro View Journal](https://sarpsoysal.github.io/macro-forecast-log/)
+tracks shorter-horizon directional calls with a scored track record. See
+[Macro View Journal](#macro-view-journal) below.
+
 ---
 
 ## Rules
@@ -163,10 +167,42 @@ wrong, not what has been right.
 
 ---
 
+## Macro View Journal
+
+Live page: **https://sarpsoysal.github.io/macro-forecast-log/**
+
+A companion to the forecast log above, built for faster feedback. It records directional
+calls (up or down over a fixed horizon, typically 1 day to 2 weeks) on 13 markets: US 2y,
+5y and 10y Treasury yields, the US 2s10s curve, the dollar index, EUR/USD, GBP/USD,
+USD/TRY, Brent, WTI, gold, the S&P 500 and the FTSE 100.
+
+- **Logging.** Each call is recorded with a one-sentence reason and the market price at
+  the time it is logged.
+- **Scoring.** A call is right if the market closes on its due date on the predicted side
+  of the entry price, by any amount. USD/TRY calls are scored against the lira's 3 month
+  depreciation trend rather than against zero.
+- **Reasoning check.** After scoring, each call is checked against the news and data that
+  actually moved the market. A call can be right for the wrong reason, and the page shows
+  that separately from the accuracy rate.
+- **Prices.** Yahoo Finance daily closes, and FRED for the 2y Treasury yield.
+
+How it differs from the forecast log:
+
+- It records directions, not probabilities, so it is scored by accuracy rate rather than
+  Brier score. The two are kept separate and never combined.
+- Journal calls are timestamped when logged but are not individually committed to this
+  repository before they resolve, so the commit history here is not their audit trail.
+  The forecast log's rules apply to the forecast log only.
+
+The page is a single generated file in `docs/`, rebuilt after each new call or review.
+
+---
+
 ## Repo structure
 
 ```
 README.md                    this file
+docs/index.html              Macro View Journal web page, served by GitHub Pages
 calls/YYYY-MM-DD-event.md    one file per event, Tier 1 and Tier 2 together
 notes/YYYY-QN.md             quarterly cross-asset notes
 scores-events.csv            Tier 1 results
